@@ -1,5 +1,5 @@
 var webSocketJs = (function() {  
-  var ip = "192.168.80.139";
+  var ip = "192.168.1.49";
   var websocket = new WebSocket("ws://"+ ip +":8080/Mercantes-del-Karibe/wsServerEndpoint");
 
   var sendMessage = function (x, y, angle) {       
