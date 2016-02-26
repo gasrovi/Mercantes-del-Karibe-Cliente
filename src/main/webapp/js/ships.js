@@ -13,6 +13,13 @@ var ships = (function() {
 
     this.el.type = type;
 
+    this.timer = this.game.time.create(false);
+    this.timer.loop(1000, function() { this.allowSend = true; }, this);
+
+    this.allowSend = false;
+
+    this.timer.start();
+
     return this.el;
   }
 
@@ -20,7 +27,9 @@ var ships = (function() {
     constructor: Ship,
     update: function(cursors) {
       if ((Math.ceil(this.dx) != Math.ceil(this.el.x)) || (Math.ceil(this.dy) != Math.ceil(this.el.y)))  {
+        console.log(this.timer);
         webSocketJs.sendMessage(this.el.x, this.el.y, this.el.rotation);
+        this.allowSend = false;
       }
 
       if (cursors.left.isDown)
@@ -43,11 +52,14 @@ var ships = (function() {
           this.el.body.velocity.y = 0;
       }
 
-      if (this.el.currentSpeed > 0)
-      {
-        this.game.physics.arcade.velocityFromRotation(this.el.rotation, this.el.currentSpeed, this.el.body.velocity);
+      if (this.el.currentSpeed >= 0)
+      {        
         this.dx = Math.ceil(this.el.x);
         this.dy = Math.ceil(this.el.y);
+
+        if (this.el.currentSpeed > 0) {
+          this.game.physics.arcade.velocityFromRotation(this.el.rotation, this.el.currentSpeed, this.el.body.velocity);
+        }
       }
     }
   }

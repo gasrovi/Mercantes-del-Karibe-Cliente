@@ -83,13 +83,23 @@ var app = (function  () {
     game.input.activePointer.y = ship.y;
     
     webSocketJs.setOnMessage(function (message) {
-      var jsonMsg = JSON.parse(message.data);
+      try {
+        var jsonMsg = JSON.parse(message.data);
 
-      if (jsonMsg.user == ShipsType.Blue && jsonMsg.x) {
-        blue.el.x = jsonMsg.x;
-        blue.el.y = jsonMsg.y;
-        blue.el.rotation = jsonMsg.rotation;
-      }
+        if (jsonMsg.user == ShipsType.Submarine && jsonMsg.x) {
+          submarine.el.x = jsonMsg.x;
+          submarine.el.y = jsonMsg.y;
+          submarine.el.rotation = jsonMsg.rotation;
+        }
+
+        if (jsonMsg.user == ShipsType.Blue && jsonMsg.x) {
+          blue.el.x = jsonMsg.x;
+          blue.el.y = jsonMsg.y;
+          blue.el.rotation = jsonMsg.rotation;
+        }
+      } catch(err) {
+        console.log(err);
+      }   
     });
   }
 
