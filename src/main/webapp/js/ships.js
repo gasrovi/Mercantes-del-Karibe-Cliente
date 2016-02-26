@@ -2,6 +2,9 @@ var ships = (function() {
   function Ship (game, type, x, y) {
     this.game = game;
 
+    this.dx = x;
+    this.dy = y;
+
     this.el = this.game.add.sprite(x, y, type);
     this.el.anchor.setTo(0.5, 0.5);
 
@@ -16,6 +19,10 @@ var ships = (function() {
   Ship.prototype = {
     constructor: Ship,
     update: function(cursors) {
+      if ((Math.ceil(this.dx) != Math.ceil(this.el.x)) || (Math.ceil(this.dy) != Math.ceil(this.el.y)))  {
+        webSocketJs.sendMessage(this.el.x, this.el.y, this.el.rotation);
+      }
+
       if (cursors.left.isDown)
       {
         this.el.body.rotation -= 4;
@@ -39,8 +46,20 @@ var ships = (function() {
       if (this.el.currentSpeed > 0)
       {
         this.game.physics.arcade.velocityFromRotation(this.el.rotation, this.el.currentSpeed, this.el.body.velocity);
+        this.dx = Math.ceil(this.el.x);
+        this.dy = Math.ceil(this.el.y);
       }
     }
+  }
+
+  function CargoBoat(game, type, x, y) {
+    Ship.call(this, game, type, x, y);
+  }
+
+  CargoBoat.prototype = Object.create(Ship.prototype);
+  CargoBoat.prototype.constructor = CargoBoat;
+  CargoBoat.prototype.update = function(cursors) {
+    Ship.prototype.update.call(this, cursors);
   }
 
   function Submarine (game, type, x, y) {
@@ -103,7 +122,7 @@ var ships = (function() {
     game = _game;
 
     submarine = new Submarine(game, ShipsType.Submarine, 100, 300);
-    blue = new Ship(game, ShipsType.Blue, 200, 500);
+    blue = new CargoBoat(game, ShipsType.Blue, 200, 500);
     //green = new Ship(game, 'red', 300, 700);
   };
 

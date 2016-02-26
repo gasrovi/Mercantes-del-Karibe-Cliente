@@ -4,6 +4,16 @@ var ShipsType = {
   Green: 'green'
 };
 
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
 var app = (function  () {
   var cursors,
     gameWidth = 800, 
@@ -50,10 +60,18 @@ var app = (function  () {
     submarine = ships.getSubmarine();
     blue = ships.getBlue();
 
-    setPlayerShip(submarine);
+    var shipType = getParameterByName("shipType");
+
+    if (shipType == ShipsType.Submarine) {
+      setPlayerShip(submarine);
+      webSocketJs.setUser(ShipsType.Submarine);
+    } else if (shipType == ShipsType.Blue) {
+      setPlayerShip(blue);
+      webSocketJs.setUser(ShipsType.Blue);
+    }
 
     // Seteo la mascara (alcanze de la luz) dependiendo del barco
-    map.generateMask(submarine);
+    map.generateMask(ship.el);
 
     // Seteo que la camara siga al submarino
     game.camera.follow(ship.el);
@@ -63,6 +81,16 @@ var app = (function  () {
 
     game.input.activePointer.x = ship.x;
     game.input.activePointer.y = ship.y;
+    
+    webSocketJs.setOnMessage(function (message) {
+      var jsonMsg = JSON.parse(message.data);
+
+      if (jsonMsg.user == ShipsType.Blue && jsonMsg.x) {
+        blue.el.x = jsonMsg.x;
+        blue.el.y = jsonMsg.y;
+        blue.el.rotation = jsonMsg.rotation;
+      }
+    });
   }
 
   function update() {
@@ -100,18 +128,7 @@ var app = (function  () {
     // }
   
     // Recibe la posición del oponente y la actualiza
-    //webSocketJs.setOnMessage(function (message) {
-    //     var jsonMsg = JSON.parse(message.data);
-    //     // console.log(jsonMsg.user);
-    //     // console.log(jsonMsg.x);
-    //     // console.log(jsonMsg.y);
-    //     // console.log(jsonMsg.angle);
-    //     if (jsonMsg.user == "red") {
-    //       red.x = jsonMsg.x;
-    //       red.y = jsonMsg.y;
-    //       red.angle = jsonMsg.angle;
-    //     }
-    // });
+    //
 
     ship.update(cursors);
 
