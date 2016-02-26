@@ -1,20 +1,23 @@
 var webSocketJs = (function() {  
-  var ip = "192.168.201.74";
-  var websocket = new WebSocket("ws://"+ ip +":8080/Mercantes-del-Karibe/wsServerEndpoint");
+  var ip = "192.168.1.41";
+  var websocket = new WebSocket("ws://" + ip + ":8080/Mercantes-del-Karibe/wsServerEndpoint");
+  var user;
 
-  var sendMessage = function (user ,x, y, angle) {       
+  var sendMessage = function (x, y, rotation) {       
     var obj = {
-      user: user
+      user: user,
       x: x,
       y: y,
-      angle: angle
+      rotation: rotation
     }
 
     websocket.send(JSON.stringify(obj));
   }
 
-  var setUser = function (name) {       
-    websocket.send(name);
+  var setUser = function (name) {
+    user = name;
+
+    //websocket.send(JSON.stringify(jsonMsg));
   }
 
   function setOnMessage(fn) {
