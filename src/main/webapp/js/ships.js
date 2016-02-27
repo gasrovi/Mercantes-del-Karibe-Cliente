@@ -4,6 +4,7 @@ var ships = (function() {
 
     this.dx = x;
     this.dy = y;
+    this.dRotation = 0;
 
     this.el = this.game.add.sprite(x, y, type);
     this.el.anchor.setTo(0.5, 0.5);
@@ -14,7 +15,7 @@ var ships = (function() {
     this.el.type = type;
 
     this.timer = this.game.time.create(false);
-    this.timer.loop(1000, function() { this.allowSend = true; }, this);
+    this.timer.loop(100, function() { this.allowSend = true; }, this);
 
     this.allowSend = false;
 
@@ -25,29 +26,39 @@ var ships = (function() {
 
   Ship.prototype = {
     constructor: Ship,
+    hasMoved: function() {
+      var xDiff = Math.ceil(this.dx) != Math.ceil(this.el.x);
+      var yDiff = Math.ceil(this.dx) != Math.ceil(this.el.x);
+      var rotationDiff = Math.ceil(this.dRotation) != Math.ceil(this.el.rotation);
+
+      if (xDiff || yDiff || rotationDiff) {
+        return true;
+      } else {
+        return false;
+      }
+    },
     update: function(cursors) {
-      if ((Math.ceil(this.dx) != Math.ceil(this.el.x)) || (Math.ceil(this.dy) != Math.ceil(this.el.y)))  {
-        console.log(this.timer);
+      if (this.hasMoved && this.allowSend)  {
         webSocketJs.sendMessage(this.el.x, this.el.y, this.el.rotation);
         this.allowSend = false;
       }
 
-      if (cursors.left.isDown)
-      {
-        this.el.body.rotation -= 4;
+      if (cursors) {
+        if (cursors.left.isDown)
+        {
+          this.el.body.rotation -= 4;
+        }
+        else if (cursors.right.isDown)
+        {
+          this.el.body.rotation += 4;
+        }
+        else if (cursors.up.isDown)
+        {
+          this.el.currentSpeed = 300;
+        }
       }
-      else if (cursors.right.isDown)
-      {
-        this.el.body.rotation += 4;
-      }
-      else if (cursors.up.isDown)
-      {
-        this.el.currentSpeed = 300;
-      }
-      else if (this.el.currentSpeed > 0) {
-          this.el.currentSpeed -= 5;
-      } else 
-      {
+          
+      if(this.el.currentSpeed == 0) {
           this.el.body.velocity.x = 0;
           this.el.body.velocity.y = 0;
       }
@@ -56,8 +67,10 @@ var ships = (function() {
       {        
         this.dx = Math.ceil(this.el.x);
         this.dy = Math.ceil(this.el.y);
+        this.dRotation = Math.ceil(this.el.rotation);
 
         if (this.el.currentSpeed > 0) {
+          this.el.currentSpeed -= 5;
           this.game.physics.arcade.velocityFromRotation(this.el.rotation, this.el.currentSpeed, this.el.body.velocity);
         }
       }

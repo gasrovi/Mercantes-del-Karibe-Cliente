@@ -4,6 +4,8 @@ var ShipsType = {
   Green: 'green'
 };
 
+var wsCounter = 0;
+
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
     name = name.replace(/[\[\]]/g, "\\$&");
@@ -90,12 +92,16 @@ var app = (function  () {
           submarine.el.x = jsonMsg.x;
           submarine.el.y = jsonMsg.y;
           submarine.el.rotation = jsonMsg.rotation;
+          //game.physics.arcade.accelerateToXY(submarine.el, jsonMsg.x, jsonMsg.y, 300);
+          //submarine.el.currentSpeed = 300;
         }
 
         if (jsonMsg.user == ShipsType.Blue && jsonMsg.x) {
           blue.el.x = jsonMsg.x;
           blue.el.y = jsonMsg.y;
           blue.el.rotation = jsonMsg.rotation;
+          //game.physics.arcade.accelerateToXY(blue.el, jsonMsg.x, jsonMsg.y, 300);
+          //blue.el.currentSpeed = 300;
         }
       } catch(err) {
         console.log(err);
@@ -108,6 +114,9 @@ var app = (function  () {
     ny = map.getNY();
     mvd = map.getMvd();
     mask = map.getMask();
+
+    mask.x = ship.el.body.x + 36;
+    mask.y = ship.el.body.y + 36;
 
     game.physics.arcade.collide([ny.land, mvd.land], ship);
     game.physics.arcade.collide(ship.el, caribbean.islands);
@@ -129,9 +138,6 @@ var app = (function  () {
       blue.kill();
     });
     
-    mask.x = ship.el.body.x + 36;
-    mask.y = ship.el.body.y + 36;
-    
     // Manda la posicion al server
     // if (submarine.alive && sendToServer) {
     //   webSocketJs.sendMessage('submarine', submarine.x, submarine.y, submarine.angle);
@@ -141,6 +147,7 @@ var app = (function  () {
     //
 
     ship.update(cursors);
+    //blue.update();
 
     // game.physics.arcade.collide(bullet, red, function() {
     //   ships.blue.kill();
