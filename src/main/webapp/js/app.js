@@ -41,7 +41,7 @@ var app = (function  () {
     game.load.image('empty', 'assets/empty.png');
     game.load.image('land', 'assets/pattern-land.png');
     game.load.image('port', 'assets/port.png');
-    game.load.image('submarine', 'assets/ship-grey.png');
+    game.load.image('submarine', 'assets/submarine-red.png');
     game.load.image('blue', 'assets/ship-blue.png');
     game.load.image('green', 'assets/ship-green.png');
     game.load.image('island', 'assets/pattern-island.png');
