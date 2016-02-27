@@ -1,10 +1,14 @@
 var appJs = (function  () {
   var game = new Phaser.Game(800, 600, Phaser.AUTO, "game-container", { preload: preload, create: create, update: update, render: render });
-
   var ocean, port, submarine, red, shadowTexture, lightSprite, islands,
     currentSpeed = 0, bmd, mask;
     var firstTime = true;
 
+  var subInfo = {
+    subX: 0,
+    subY: 0,
+    subAngle: 0
+  }
 
   var worldBounds = { 
     xTopLeft: 0,
@@ -12,6 +16,8 @@ var appJs = (function  () {
     xBottomRight: 5000,
     yBottomRight: 5000
   };
+
+  var millisecondsFrame = 0;
 
   var bullet;
   var bulletButton = null;
@@ -52,6 +58,8 @@ var appJs = (function  () {
   }
 
   function create() {
+
+    //time.fpsMax = 1;
     // Creo el mundo
     game.stage.backgroundColor = '#000000';
     game.world.setBounds(0, 0, worldBounds.xBottomRight, worldBounds.yBottomRight);
@@ -140,45 +148,56 @@ var appJs = (function  () {
   };
 
   function update() {
-    //game.physics.arcade.collide([shoreMon, shoreNY], submarine);
-    game.physics.arcade.collide([newYork, montevideo], submarine);
-    game.physics.arcade.overlap(port, submarine, function() {
-      alert("LLego!");
-      submarine.kill();
-      // una vez que muere puede seguir al otro
-      game.camera.follow(red);
-      mask.destroy();
-    });
-
-    game.physics.arcade.collide(submarine, islands);
-    game.physics.arcade.collide(red, submarine, function() {
-      //red.body.velocity = { x: 0, y: 0 };
-      //submarine.body.velocity = { x: 0, y: 0 };
-      alert("Boom!");
-      red.kill();
-    });
     
+    //game.physics.arcade.collide([shoreMon, shoreNY], submarine);
+      game.physics.arcade.collide([newYork, montevideo], submarine);
+      game.physics.arcade.overlap(port, submarine, function() {
+        alert("LLego!");
+        submarine.kill();
+        // una vez que muere puede seguir al otro
+        game.camera.follow(red);
+        mask.destroy();
+      });
+
+      game.physics.arcade.collide(submarine, islands);
+      game.physics.arcade.collide(red, submarine, function() {
+        //red.body.velocity = { x: 0, y: 0 };
+        //submarine.body.velocity = { x: 0, y: 0 };
+        alert("Boom!");
+        red.kill();
+      });
+
+    // Mando el update solo cada millisecondsFrame milisegnudos
+    millisecondsFrame = millisecondsFrame + game.time.elapsed;
+    if (millisecondsFrame > 50) {
+      millisecondsFrame = 0;
+      
+      // Manda la posicion al server
+      if (subInfo.subX != submarine.x || subInfo.subY != submarine.y || subInfo.subAngle != submarine.angle) 
+      {
+        subInfo.subX = submarine.x;
+        subInfo.subY = submarine.y;
+        subInfo.subAngle = submarine.angle;
+        webSocketJs.sendMessage('submarine', submarine.x, submarine.y, submarine.angle);
+      }
+    
+      // Recibe la posición del oponente y la actualiza
+      webSocketJs.setOnMessage(function (message) {
+          var jsonMsg = JSON.parse(message.data);
+          console.log('user: ' + jsonMsg.user + ' time: ' + game.time.now);
+          // console.log(jsonMsg.x);
+          // console.log(jsonMsg.y);
+          // console.log(jsonMsg.angle);
+          if (jsonMsg.user == "red") {
+            red.x = jsonMsg.x;
+            red.y = jsonMsg.y;
+            red.angle = jsonMsg.angle;
+          }
+      });
+      
+    }
     mask.x = submarine.body.x + 36;
     mask.y = submarine.body.y + 36;
-    
-    // Manda la posicion al server
-    if (submarine.alive) {
-      webSocketJs.sendMessage('submarine', submarine.x, submarine.y, submarine.angle);
-    }
-  
-    // Recibe la posición del oponente y la actualiza
-    webSocketJs.setOnMessage(function (message) {
-        var jsonMsg = JSON.parse(message.data);
-        // console.log(jsonMsg.user);
-        // console.log(jsonMsg.x);
-        // console.log(jsonMsg.y);
-        // console.log(jsonMsg.angle);
-        if (jsonMsg.user == "red") {
-          red.x = jsonMsg.x;
-          red.y = jsonMsg.y;
-          red.angle = jsonMsg.angle;
-        }
-    });
 
     if (cursors.left.isDown)
     {

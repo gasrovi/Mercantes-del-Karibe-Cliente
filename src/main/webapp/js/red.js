@@ -5,6 +5,11 @@ var appJs = (function  () {
     currentSpeed = 0, bmd, mask;
     var firstTime = true;
 
+  var redInfo = {
+    redX: 0,
+    redY: 0,
+    redAngle: 0
+  }
 
   var worldBounds = { 
     xTopLeft: 0,
@@ -12,6 +17,9 @@ var appJs = (function  () {
     xBottomRight: 5000,
     yBottomRight: 5000
   };
+
+  var millisecondsFrame = 0;
+
   var newYork;
   var montevideo;
   var caribbean;
@@ -147,6 +155,35 @@ var appJs = (function  () {
   };
 
   function update() {
+
+    // Mando el update solo cada millisecondsFrame milisegnudos
+    millisecondsFrame = millisecondsFrame + game.time.elapsed;
+    if (millisecondsFrame > 50) {
+      millisecondsFrame = 0;
+
+      if (redInfo.redX != red.x || redInfo.redY != red.y || redInfo.redAngle != red.angle) 
+      {
+        redInfo.redX = red.x;
+        redInfo.redY = red.y;
+        redInfo.redAngle = red.angle;
+        webSocketJs.sendMessage('red', red.x, red.y, red.angle);  
+      }
+
+      // Recibe la posición del oponente y la actualiza
+      webSocketJs.setOnMessage(function (message) {
+        var jsonMsg = JSON.parse(message.data);
+          // console.log(jsonMsg.user);
+          // console.log(jsonMsg.x);
+          // console.log(jsonMsg.y);
+          // console.log(jsonMsg.angle);
+          if (jsonMsg.user == "submarine") {
+            submarine.x = jsonMsg.x;
+            submarine.y = jsonMsg.y;
+            submarine.angle = jsonMsg.angle;
+          }
+      });
+  }
+
     //game.physics.arcade.collide([shoreMon, shoreNY], submarine);
     game.physics.arcade.collide([newYork, montevideo], red);
     game.physics.arcade.collide(port, red, function() {
@@ -165,21 +202,7 @@ var appJs = (function  () {
     mask.x = red.body.x + 36;
     mask.y = red.body.y + 36;
     
-    webSocketJs.sendMessage('red', red.x, red.y, red.angle);
-  
-    // Recibe la posición del oponente y la actualiza
-    webSocketJs.setOnMessage(function (message) {
-        var jsonMsg = JSON.parse(message.data);
-        // console.log(jsonMsg.user);
-        // console.log(jsonMsg.x);
-        // console.log(jsonMsg.y);
-        // console.log(jsonMsg.angle);
-        if (jsonMsg.user == "submarine") {
-          submarine.x = jsonMsg.x;
-          submarine.y = jsonMsg.y;
-          submarine.angle = jsonMsg.angle;
-        }
-    });
+    
 
     if (cursors.left.isDown)
     {
